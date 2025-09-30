@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.m-top{
+  margin: 12px auto !important;
+}
