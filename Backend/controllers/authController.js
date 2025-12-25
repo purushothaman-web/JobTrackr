@@ -18,7 +18,7 @@ const isValidName = (name) => {
 }
 
 const isValidPassword = (password) => {
-    return password && password.length >= 6; // Basic password length validation
+  return password && password.length >= 6; // Basic password length validation
 }
 
 const isValidLogin = (login) => {
@@ -78,7 +78,7 @@ export const register = async (req, res, next) => {
       </p>
     </div>
   `;
-  
+
 
     await sendEmail(user.email, "Email Verification", message)
     const token = generateToken(user);
@@ -89,7 +89,7 @@ export const register = async (req, res, next) => {
       sameSite: 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    
+
     res.status(201).json({
       success: true,
       data: {
@@ -100,10 +100,10 @@ export const register = async (req, res, next) => {
         emailVerified: user.emailVerified,
       }
     });
-    
+
   } catch (error) {
     console.error("Registration error:", error);
-  res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -119,16 +119,16 @@ export const login = async (req, res, next) => {
         ]
       }
     });
-      if (!user) {
-        console.warn(`Failed login attempt: user not found for login '${login}'`);
-        throw new ApiError(401, "Invalid credentials");
-      }
+    if (!user) {
+      console.warn(`Failed login attempt: user not found for login '${login}'`);
+      throw new ApiError(401, "Invalid credentials");
+    }
 
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        console.warn(`Failed login attempt: incorrect password for user '${login}'`);
-        throw new ApiError(401, "Invalid credentials");
-      }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.warn(`Failed login attempt: incorrect password for user '${login}'`);
+      throw new ApiError(401, "Invalid credentials");
+    }
     const token = generateToken(user);
     res.cookie('token', token, {
       httpOnly: true,
@@ -148,7 +148,7 @@ export const login = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-  res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -165,11 +165,11 @@ export const getProfile = async (req, res) => {
       throw new ApiError(404, "User not found");
     }
 
-  res.status(200).json({ success: true, data: user });
+    res.status(200).json({ success: true, data: user });
 
   } catch (error) {
     console.error("Get profile error:", error);
-  res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -211,10 +211,10 @@ export const forgotPassword = async (req, res, next) => {
       </div>
     `;
     await sendEmail(user.email, 'Password Reset Request', message);
-  res.status(200).json({ success: true, data: { message: 'Password reset email sent.' } });
+    res.status(200).json({ success: true, data: { message: 'Password reset email sent.' } });
   } catch (error) {
     console.error('Forgot Password error:', error);
-  res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -246,10 +246,10 @@ export const resetPassword = async (req, res) => {
         resetPasswordExpires: null,
       },
     });
-  res.status(200).json({ success: true, data: { message: 'Password has been reset successfully.' } });
+    res.status(200).json({ success: true, data: { message: 'Password has been reset successfully.' } });
   } catch (error) {
     console.error('Reset Password error:', error);
-  res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -275,33 +275,17 @@ export const verifyEmail = async (req, res, next) => {
     });
 
     // Generate JWT token and set cookie
-    const jwtToken = generateToken(updatedUser);
-
-    res.cookie('token', jwtToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    // Return minimal user info (optional)
-    const userPayload = {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-    };
-
+    // Return success message without auto-login
     res.status(200).json({
       success: true,
       data: {
-        message: 'Email successfully verified and you are now logged in.',
-        user: userPayload,
+        message: 'Email successfully verified. Please log in.',
       }
     });
 
   } catch (error) {
     console.error('Email verification error:', error);
-  res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -310,11 +294,11 @@ export const resendVerificationEmail = async (req, res) => {
   const { email } = req.body;
   try {
     // Validation and sanitization handled by express-validator middleware
-    const user = await prisma.user.findUnique({ where: {email}});
-    if (!user){
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
       throw new ApiError(400, "User with this email does not exist");
     }
-    if (user.emailVerified){
+    if (user.emailVerified) {
       throw new ApiError(400, "Email is already verified");
     }
     let token = user.emailVerificationToken;
@@ -344,10 +328,10 @@ export const resendVerificationEmail = async (req, res) => {
       </div>
     `;
     await sendEmail(user.email, "Email Verification", message);
-  return res.status(200).json({ success: true, data: { message: "Verification email resent" } });
+    return res.status(200).json({ success: true, data: { message: "Verification email resent" } });
   } catch (error) {
     console.error("Resend verification email error:", error);
-  res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 }
 

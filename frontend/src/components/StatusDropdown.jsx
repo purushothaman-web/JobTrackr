@@ -8,22 +8,25 @@ const StatusDropdown = ({ currentStatus, onChange }) => {
       value={currentStatus}
       onChange={(e) => onChange(e, e.target.value)}
       className="
-        border
-        border-[#64748B]
-        rounded-md
+        w-full
+        bg-slate-50
+        border-0
+        ring-1
+        ring-slate-200
+        rounded-lg
         px-3
-        py-1.5
+        py-2
         text-sm
-        text-[#1E293B]
-        placeholder:text-[#94A3B8]
+        font-medium
+        text-slate-600
         focus:outline-none
         focus:ring-2
-        focus:ring-[#3B82F6]
-        focus:border-[#3B82F6]
-        transition
-        duration-200
+        focus:ring-violet-500/20
         cursor-pointer
+        hover:bg-slate-100
+        transition-colors
       "
+      onClick={(e) => e.stopPropagation()}
     >
       {options.map((status) => (
         <option key={status} value={status}>

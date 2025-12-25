@@ -1,0 +1,41 @@
+<svg
+  width="512"
+  height="512"
+  viewBox="0 0 256 256"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient id="jt-gradient" x1="0" y1="0" x2="256" y2="256">
+      <stop offset="0%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+  </defs>
+
+  <!-- Document outline -->
+  <path
+    d="M56 32H144L192 80V208C192 220 182 230 170 230H56C44 230 34 220 34 208V54C34 42 44 32 56 32Z"
+    stroke="url(#jt-gradient)"
+    stroke-width="12"
+    stroke-linejoin="round"
+  />
+
+  <!-- Folded corner -->
+  <path
+    d="M144 32V80H192"
+    stroke="url(#jt-gradient)"
+    stroke-width="12"
+    stroke-linejoin="round"
+  />
+
+  <!-- Checklist lines -->
+  <line x1="78" y1="108" x2="130" y2="108" stroke="url(#jt-gradient)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="78" y1="140" x2="130" y2="140" stroke="url(#jt-gradient)" stroke-width="10" stroke-linecap="round"/>
+  <line x1="78" y1="172" x2="130" y2="172" stroke="url(#jt-gradient)" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Check marks -->
+  <path d="M60 108L68 116L82 100" stroke="url(#jt-gradient)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M60 140L68 148L82 132" stroke="url(#jt-gradient)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M60 172L68 180L82 164" stroke="url(#jt-gradient)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+
+</svg>

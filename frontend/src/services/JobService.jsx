@@ -171,25 +171,25 @@ export const fetchJob = async ({ id, token }) => {
 
 export const updateJobStatus = async ({ token, id, status }) => {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/jobs/${id}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status }),
-    });
-    const response = await res.json();
-    if (response.success) {
-      return response.data;
+    const response = await axios.patch(
+      `${API_BASE}/jobs/${id}/status`,
+      { status },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.data.success) {
+      return response.data.data;
     } else {
-      throw new Error(response.error || 'Failed to update job status');
+      throw new Error(response.data.error || 'Failed to update job status');
     }
   } catch (error) {
-    if (error.status === 429) {
+    if (error.response?.status === 429) {
       throw new Error('Too many requests. Please try again later.');
     }
-    const errMsg = error.message || 'Something went wrong';
+    const errMsg = error.response?.data?.error || error.message || 'Something went wrong';
     throw new Error(errMsg);
   }
 };

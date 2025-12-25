@@ -28,6 +28,15 @@ const AppRoutes = () => {
           <Login />
         )
       } />
+      <Route path="/login" element={
+        authLoading ? (
+          <p>Loading...</p>
+        ) : user ? (
+          <Navigate to="/jobs" replace />
+        ) : (
+          <Login />
+        )
+      } />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />

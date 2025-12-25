@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+import logo from '../assets/logo.svg';
+
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -15,59 +17,67 @@ const Header = () => {
     }
   };
 
-
   // Responsive menu state
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   return (
-    <header className="bg-[#F9FAFB] shadow-md">
+    <header className="glass-header">
       <div className="container mx-auto flex justify-between items-center py-4 px-6">
-        <Link to={user ? "/jobs" : "/"} className="text-2xl font-bold font-heading text-[#1E293B] hover:text-[#3B82F6] transition-colors">
-          JobTrackr
+        <Link to={user ? "/jobs" : "/"} className="flex items-center gap-3 group">
+          <img src={logo} alt="JobTrackr Logo" className="h-10 w-10 transition-transform group-hover:scale-110" />
+          <span className="text-2xl font-extrabold tracking-tight text-gradient">
+            JobTrackr
+          </span>
         </Link>
 
         {/* Hamburger for mobile */}
         <button
-          className="md:hidden flex items-center px-2 py-1 border rounded text-[#3B82F6] border-[#3B82F6]"
+          className="md:hidden p-2 text-slate-600 hover:text-violet-600 transition-colors bg-slate-100 rounded-lg"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle navigation"
         >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          {menuOpen ? (
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          )}
         </button>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center space-x-6 text-[#64748B] font-body">
+        <nav className="hidden md:flex items-center space-x-8">
           {user ? (
             <>
-              <Link to="/jobs" className="hover:text-[#3B82F6] font-medium transition-colors">Jobs</Link>
-              <Link to="/add-job" className="hover:text-[#3B82F6] font-medium transition-colors">Add Job</Link>
-              <Link to="/profile" className="hover:text-[#3B82F6] font-medium transition-colors">Profile</Link>
-              <button onClick={handleLogout} className="ml-4 px-4 py-1 bg-[#3B82F6] text-white rounded-md hover:bg-[#2563EB] transition-colors">Logout</button>
+              <Link to="/jobs" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Jobs</Link>
+              <Link to="/add-job" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Add Job</Link>
+              <Link to="/profile" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Profile</Link>
+              <button onClick={handleLogout} className="btn-primary py-2 px-5 text-sm shadow-md">Logout</button>
             </>
           ) : (
             <>
-              <Link to="/" className="hover:text-[#3B82F6] font-medium transition-colors">Login</Link>
-              <Link to="/register" className="hover:text-[#3B82F6] font-medium transition-colors">Register</Link>
+              <Link to="/" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Login</Link>
+              <Link to="/register" className="btn-primary py-2 px-5 text-sm shadow-md">Register</Link>
             </>
           )}
         </nav>
 
         {/* Mobile nav */}
         {menuOpen && (
-          <nav className="absolute top-16 left-0 w-full bg-[#F9FAFB] shadow-md flex flex-col items-center py-4 space-y-4 z-50 md:hidden text-[#64748B] font-body">
+          <nav className="absolute top-full left-0 w-full bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-xl flex flex-col items-center py-6 space-y-6 z-40 md:hidden animate-in slide-in-from-top-2 fade-in duration-200">
             {user ? (
               <>
-                <Link to="/jobs" className="hover:text-[#3B82F6] font-medium transition-colors" onClick={() => setMenuOpen(false)}>Jobs</Link>
-                <Link to="/add-job" className="hover:text-[#3B82F6] font-medium transition-colors" onClick={() => setMenuOpen(false)}>Add Job</Link>
-                <Link to="/profile" className="hover:text-[#3B82F6] font-medium transition-colors" onClick={() => setMenuOpen(false)}>Profile</Link>
-                <button onClick={() => { setMenuOpen(false); handleLogout(); }} className="px-4 py-1 bg-[#3B82F6] text-white rounded-md hover:bg-[#2563EB] transition-colors">Logout</button>
+                <Link to="/jobs" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Jobs</Link>
+                <Link to="/add-job" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Add Job</Link>
+                <Link to="/profile" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Profile</Link>
+                <button onClick={() => { setMenuOpen(false); handleLogout(); }} className="btn-primary w-3/4 text-center">Logout</button>
               </>
             ) : (
               <>
-                <Link to="/" className="hover:text-[#3B82F6] font-medium transition-colors" onClick={() => setMenuOpen(false)}>Login</Link>
-                <Link to="/register" className="hover:text-[#3B82F6] font-medium transition-colors" onClick={() => setMenuOpen(false)}>Register</Link>
+                <Link to="/" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Login</Link>
+                <Link to="/register" className="btn-primary w-3/4 text-center" onClick={() => setMenuOpen(false)}>Register</Link>
               </>
             )}
           </nav>

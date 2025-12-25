@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -12,11 +12,16 @@ const VerifyEmail = () => {
   const { setUser } = useAuth();
   const [status, setStatus] = useState({ loading: true, success: false, message: '' });
 
+  const verifyRef = useRef(false);
+
   useEffect(() => {
     if (!token) {
       setStatus({ loading: false, success: false, message: 'Invalid or missing verification token.' });
       return;
     }
+
+    if (verifyRef.current) return;
+    verifyRef.current = true;
 
     const verify = async () => {
       try {
@@ -24,14 +29,14 @@ const VerifyEmail = () => {
           withCredentials: true,
         });
 
-        if (response.data.user) {
-          setUser(response.data.user);
-        }
+        // if (response.data.user) {
+        //   setUser(response.data.user);
+        // }
 
-        setStatus({ loading: false, success: true, message: response.data.message });
+        setStatus({ loading: false, success: true, message: response.data.data.message }); // Corrected path to message
 
         setTimeout(() => {
-          navigate('/jobs');
+          navigate('/login');
         }, 3000);
       } catch (err) {
         setStatus({

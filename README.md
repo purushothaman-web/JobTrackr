@@ -27,7 +27,7 @@ JobTrackr is a full-stack web application to streamline job applications. It hel
 
 1. **Clone the repository**
 	 ```bash
-	 git clone <repository_url>
+	 git clone https://github.com/purushothaman-web/JobTrackr.git
 	 cd JobTrackr
 	 ```
 
@@ -40,12 +40,12 @@ JobTrackr is a full-stack web application to streamline job applications. It hel
 		 npx prisma generate
 		 npx prisma migrate dev
 		 ```
-	 - Start server: `npm run dev`
+	 - Start server: `npm run dev` (Runs on port 5000 by default)
 
 3. **Frontend Setup**
 	 - `cd ../Frontend`
 	 - `npm install`
-	 - Create `.env` and set:
+	 - Create `.env` from `.env.example` and set:
 		 ```
 		 VITE_API_URL=http://localhost:5000/api
 		 ```

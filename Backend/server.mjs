@@ -4,7 +4,7 @@ import { PrismaClient } from "./generated/prisma/index.js";
 import errorHandler from './middleware/errorMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
-import './cron/weeklyEmailCron.js'; 
+import './cron/weeklyEmailCron.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
@@ -17,8 +17,8 @@ import { googleLogin, googleCallback } from './controllers/googleAuthController.
 dotenv.config();
 const app = express();
 app.use(cors({
-  origin: 'http://localhost:5173', 
-  credentials: true,            
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,
 }));
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
@@ -76,7 +76,7 @@ app.param("id", (req, res, next, id) => {
 });
 
 // Routes
-app.get("/", (req, res) =>{
+app.get("/", (req, res) => {
   res.send("Job Tracker API is running");
 });
 
