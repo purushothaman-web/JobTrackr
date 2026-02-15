@@ -74,6 +74,7 @@ import { sendEmail } from "../utils/email.js";
 import ApiError from '../utils/ApiError.js';
 import * as jobRepository from '../repositories/jobRepository.js';
 import { PrismaClient } from '../generated/prisma/index.js';
+import { logActivity } from '../utils/activityLogger.js';
 
 const prisma = new PrismaClient();
 
@@ -89,8 +90,9 @@ export const getAllJobs = async (req, res, next) => {
 
 export const getJobById = async (req, res, next) => {
   try {
+    const userId = req.user.id;
     const jobId = parseInt(req.params.id, 10);
-    const job = await jobRepository.getJobById(jobId);
+    const job = await jobRepository.getJobById(jobId, userId);
     if (!job) {
       return res.status(404).json({ success: false, error: "Job not found" });
     }
@@ -117,6 +119,13 @@ export const createJob = async (req, res, next) => {
       userId, // link job to the authenticated user
     };
     const job = await jobRepository.createJob(jobData);
+    await logActivity({
+      userId,
+      jobId: job.id,
+      type: 'job_created',
+      description: `Created job application for ${job.position} at ${job.company}`,
+      toValue: job.status,
+    });
     res.status(201).json({ success: true, data: job });
   } catch (error) {
     console.error("Create job error:", error);
@@ -129,7 +138,12 @@ export const createJob = async (req, res, next) => {
 export const updateJob = async (req, res, next) => {
   const { position, company, status, location, notes } = req.body;
   const jobId = parseInt(req.params.id, 10);
+  const userId = req.user.id;
   try {
+    const existingJob = await jobRepository.getJobById(jobId, userId);
+    if (!existingJob) {
+      return res.status(404).json({ success: false, error: "Job not found" });
+    }
     const jobData = {
       position,
       company,
@@ -138,8 +152,22 @@ export const updateJob = async (req, res, next) => {
       notes,
     };
     const job = await jobRepository.updateJob(jobId, jobData);
-    if (!job) {
-      return res.status(404).json({ success: false, error: "Job not found" });
+    if (existingJob.status !== job.status) {
+      await logActivity({
+        userId,
+        jobId: job.id,
+        type: 'job_status_changed',
+        description: `Job status changed from ${existingJob.status} to ${job.status}`,
+        fromValue: existingJob.status,
+        toValue: job.status,
+      });
+    } else {
+      await logActivity({
+        userId,
+        jobId: job.id,
+        type: 'job_updated',
+        description: `Updated job details for ${job.position} at ${job.company}`,
+      });
     }
     res.status(200).json({ success: true, data: job });
   } catch (error) {
@@ -152,13 +180,25 @@ export const updateJob = async (req, res, next) => {
 export const updateStatus = async (req, res, next) => {
   const jobId = parseInt(req.params.id, 10);
   const { status } = req.body;
+  const userId = req.user.id;
   if (!status) {
     return res.status(400).json({ success: false, error: "Status is required" });
   }
   try {
-    const job = await jobRepository.updateJob(jobId, { status });
-    if (!job) {
+    const existingJob = await jobRepository.getJobById(jobId, userId);
+    if (!existingJob) {
       return res.status(404).json({ success: false, error: "Job not found" });
+    }
+    const job = await jobRepository.updateJob(jobId, { status });
+    if (existingJob.status !== job.status) {
+      await logActivity({
+        userId,
+        jobId: job.id,
+        type: 'job_status_changed',
+        description: `Job status changed from ${existingJob.status} to ${job.status}`,
+        fromValue: existingJob.status,
+        toValue: job.status,
+      });
     }
     res.status(200).json({ success: true, data: job });
   } catch (error) {
@@ -170,11 +210,19 @@ export const updateStatus = async (req, res, next) => {
 // ----------------- Delete job -----------------
 export const deleteJob = async (req, res, next) => {
   const jobId = parseInt(req.params.id, 10);
+  const userId = req.user.id;
   try {
-    const job = await jobRepository.deleteJob(jobId);
-    if (!job) {
+    const existingJob = await jobRepository.getJobById(jobId, userId);
+    if (!existingJob) {
       return res.status(404).json({ success: false, error: "Job not found" });
     }
+    await logActivity({
+      userId,
+      jobId,
+      type: 'job_deleted',
+      description: `Deleted job application for ${existingJob.position} at ${existingJob.company}`,
+    });
+    const job = await jobRepository.deleteJob(jobId);
     res.status(200).json({ success: true, data: { message: "Job deleted successfully" } });
   } catch (error) {
     console.error("delete job error:", error);
@@ -381,6 +429,225 @@ export const getJobs = async (req, res, next) => {
     res.status(200).json({ success: true, data: result });
   } catch (error) {
     console.error('Error fetching jobs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const importJobs = async (req, res) => {
+  const userId = req.user.id;
+  const rows = Array.isArray(req.body.rows) ? req.body.rows : null;
+  if (!rows || rows.length === 0) {
+    return res.status(400).json({ success: false, error: "rows array is required" });
+  }
+
+  const normalize = (value) => (typeof value === "string" ? value.trim() : "");
+  const normalizeStatus = (value) => value.trim().toLowerCase();
+  const makeDedupeKey = (position, company) =>
+    `${position.trim().toLowerCase()}::${company.trim().toLowerCase()}`;
+
+  try {
+    const existingJobs = await prisma.job.findMany({
+      where: { userId },
+      select: { id: true, position: true, company: true },
+    });
+    const existingKeys = new Set(existingJobs.map((job) => makeDedupeKey(job.position, job.company)));
+    const batchKeys = new Set();
+
+    let imported = 0;
+    let skippedDuplicates = 0;
+    let invalidRows = 0;
+
+    for (const row of rows) {
+      const position = normalize(row?.position);
+      const status =
+        typeof row?.status === "string" && row.status.trim()
+          ? normalizeStatus(row.status)
+          : "applied";
+      const location = normalize(row?.location) || null;
+      const notes = normalize(row?.notes) || null;
+      const inputCompany = normalize(row?.company);
+      const inputCompanyId = Number.isInteger(row?.companyId) ? row.companyId : null;
+
+      if (!position || (!inputCompany && !inputCompanyId)) {
+        invalidRows += 1;
+        continue;
+      }
+
+      let companyId = null;
+      let companyName = inputCompany;
+
+      if (inputCompanyId) {
+        const company = await prisma.company.findFirst({
+          where: { id: inputCompanyId, userId },
+        });
+        if (!company) {
+          invalidRows += 1;
+          continue;
+        }
+        companyId = company.id;
+        companyName = company.name;
+      } else {
+        const company = await prisma.company.findFirst({
+          where: { userId, name: companyName },
+        });
+        if (company) {
+          companyId = company.id;
+          companyName = company.name;
+        }
+      }
+
+      const dedupeKey = makeDedupeKey(position, companyName);
+      if (existingKeys.has(dedupeKey) || batchKeys.has(dedupeKey)) {
+        skippedDuplicates += 1;
+        continue;
+      }
+
+      const created = await prisma.job.create({
+        data: {
+          userId,
+          position,
+          company: companyName,
+          companyId,
+          status,
+          location,
+          notes,
+        },
+      });
+
+      batchKeys.add(dedupeKey);
+      imported += 1;
+
+      await logActivity({
+        userId,
+        jobId: created.id,
+        type: 'job_imported',
+        description: `Imported job application for ${created.position} at ${created.company}`,
+        toValue: created.status,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        imported,
+        skippedDuplicates,
+        invalidRows,
+        totalRows: rows.length,
+      },
+    });
+  } catch (error) {
+    console.error("Import jobs error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const getJobTimeline = async (req, res) => {
+  const userId = req.user.id;
+  const jobId = parseInt(req.params.id, 10);
+  if (Number.isNaN(jobId)) {
+    return res.status(400).json({ success: false, error: "Invalid job ID" });
+  }
+
+  try {
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      return res.status(404).json({ success: false, error: "Job not found" });
+    }
+
+    const timeline = await prisma.activity.findMany({
+      where: { jobId, userId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.status(200).json({ success: true, data: timeline });
+  } catch (error) {
+    console.error("Get timeline error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const getJobInterviews = async (req, res) => {
+  const userId = req.user.id;
+  const jobId = parseInt(req.params.id, 10);
+  if (Number.isNaN(jobId)) {
+    return res.status(400).json({ success: false, error: "Invalid job ID" });
+  }
+
+  try {
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      return res.status(404).json({ success: false, error: "Job not found" });
+    }
+
+    const interviews = await prisma.interview.findMany({
+      where: { jobId, userId },
+      orderBy: { scheduledAt: "asc" },
+    });
+
+    res.status(200).json({ success: true, data: interviews });
+  } catch (error) {
+    console.error("Get job interviews error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const createJobInterview = async (req, res) => {
+  const userId = req.user.id;
+  const jobId = parseInt(req.params.id, 10);
+  if (Number.isNaN(jobId)) {
+    return res.status(400).json({ success: false, error: "Invalid job ID" });
+  }
+
+  try {
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      return res.status(404).json({ success: false, error: "Job not found" });
+    }
+
+    const scheduledAtRaw =
+      typeof req.body.scheduledAt === "string" ? req.body.scheduledAt : "";
+    const mode = typeof req.body.mode === "string" ? req.body.mode.trim() : null;
+    const round = typeof req.body.round === "string" ? req.body.round.trim() : null;
+    const status =
+      typeof req.body.status === "string" ? req.body.status.trim().toLowerCase() : "scheduled";
+    const notes = typeof req.body.notes === "string" ? req.body.notes.trim() : null;
+
+    if (!scheduledAtRaw) {
+      return res.status(400).json({ success: false, error: "scheduledAt is required" });
+    }
+
+    const scheduledAt = new Date(scheduledAtRaw);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      return res.status(400).json({ success: false, error: "Invalid scheduledAt value" });
+    }
+
+    const interview = await prisma.interview.create({
+      data: {
+        jobId,
+        userId,
+        scheduledAt,
+        mode,
+        round,
+        status,
+        notes,
+      },
+    });
+
+    await logActivity({
+      userId,
+      jobId,
+      type: 'interview_created',
+      description: `Interview scheduled for ${job.position} at ${job.company}`,
+      toValue: scheduledAt.toISOString(),
+      metadata: {
+        interviewId: interview.id,
+        interviewStatus: interview.status,
+      },
+    });
+
+    res.status(201).json({ success: true, data: interview });
+  } catch (error) {
+    console.error("Create interview error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

@@ -1,74 +1,42 @@
+# JobTrackr Frontend (PERN)
 
-# JobTrackr Frontend
+Vite + React UI for JobTrackr.
 
-The React-based frontend for JobTrackr, providing a modern, responsive UI for job tracking and user management.
+## Tech Stack
 
-## Features
+- React 19
+- Vite 7
+- React Router 7
+- Tailwind CSS v4
+- Axios, react-toastify
+- Chart.js
+- PWA via `vite-plugin-pwa`
 
-- Authentication pages (login, register, forgot password, profile, Google login)
-- Job views (list, add, edit, details)
-- Responsive UI (mobile/tablet/desktop)
-- Sticky footer (always at the bottom)
-- Form handling and validation
-- Toast notifications and error pages
-- Robust error handling and rate limit UI (yellow banner)
-- CSV export of job data
-- Consistent API response handling
-- [Frontend API Usage Docs](./API_DOCS.md) for developers
+## Project Structure
 
-## Code Structure
+- `src/components/` UI components
+- `src/pages/` pages and views
+- `src/context/` auth state
+- `src/services/` API layer
+- `src/config.js` env config
 
-- `src/App.jsx`: Main app with routes, header, footer, sticky footer layout
-- `src/routes/AppRoutes.jsx`: Routing with auth guards
-- `src/pages/`: Page components (Jobs, AddJob, EditJob, JobDetails, Login, Register, etc.)
-- `src/components/`: Reusables (Header, Footer, JobCard, FormField, Button, etc.)
-- `src/context/`: Auth state management
-- `src/services/`: API calls (JobService)
+## Environment
 
-## Technologies
+Create `frontend/.env` from `frontend/.env.example`:
 
-- React, React Router, Tailwind CSS
-- react-toastify, Axios (for APIs)
+- `VITE_API_URL=http://localhost:5000/api`
 
-## Setup Instructions
+## Setup
 
-1.  Clone the repository:
-    ```bash
-    git clone <repository_url>
-    cd frontend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  **Configure the API URL:**
-    - Create a `.env` file in the root of the `frontend` directory.
-    - Add the `VITE_API_URL` variable to point to your backend API.
-    - Example `.env` file:
-      ```
-      VITE_API_URL=http://localhost:5000/api
-      ```
-    - **Note:** Ensure that the `VITE_` prefix is used for Vite to recognize the environment variable.
-4.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-    (starts on port 3000 by default)
-5.  Build for production:
-    ```bash
-    npm run build
-    ```
+1. `cd frontend`
+2. `npm install`
+3. `npm run dev` (Vite defaults to `http://localhost:5173`)
 
-Connects to Backend API; ensure backend is running.
+## Build and Preview
 
-## Troubleshooting
+- `npm run build`
+- `npm run preview`
 
-- Make sure the backend server is running before starting the frontend.
-- Check `.env` for correct API URL.
-- For build issues, delete `node_modules` and reinstall dependencies.
+## API Docs
 
-## Contributing
-
-- Fork the repo and create a feature branch.
-- Submit pull requests with clear descriptions.
-- See `CONTRIBUTING.md` for guidelines (add this file if missing).
+See `frontend/API_DOCS.md`.

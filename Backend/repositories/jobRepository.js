@@ -9,7 +9,12 @@ export const getAllJobs = async (userId) => {
 };
 
 
-export const getJobById = async (id) => {
+export const getJobById = async (id, userId) => {
+  if (userId) {
+    return prisma.job.findFirst({
+      where: { id, userId },
+    });
+  }
   return prisma.job.findUnique({
     where: { id },
   });
@@ -86,6 +91,7 @@ export const exportJobsCSV = async (userID) => {
       location: true,
       notes: true,
       createdAt: true,
+      updatedAt: true,
     },
   });
 };

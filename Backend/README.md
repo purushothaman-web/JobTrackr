@@ -1,85 +1,58 @@
+# JobTrackr Backend (PERN)
 
-# JobTrackr Backend
+Express + Prisma API for JobTrackr.
 
-The backend API for JobTrackr, managing authentication, jobs, and emails with a PostgreSQL database.
+## Tech Stack
 
-## Features
+- Node.js, Express 5
+- Prisma ORM, PostgreSQL
+- JWT auth, cookies
+- Nodemailer
+- Rate limiting and validation
 
-- User authentication (JWT, register/login/profile, email verification, password reset)
-- Job CRUD operations (add, edit, delete, status updates)
-- Weekly email cron for job reminders
-- Rate limiting, validation, and error handling
-- Consistent API response format: `{ success, data, error }` for all endpoints
-- Robust error and validation handling
+## Project Structure
 
----
-See also: [Frontend API Usage Docs](../frontend/API_DOCS.md)
+- `controllers/` API logic
+- `routes/` Express routes
+- `middleware/` auth, validation, errors
+- `repositories/` database access
+- `utils/` helpers
+- `prisma/` schema and migrations
+- `server.mjs` entry point
 
-## Code Structure
+## Environment
 
-- `controllers/`: API logic (auth, jobs)
-- `middleware/`: Auth, validation, errors
-- `routes/`: Express routes
-- `repositories/`: Database access
-- `utils/`: Email, JWT helpers
-- `cron/`: Scheduled tasks
-- `prisma/`: Schema and migrations
-- `server.mjs`: Entry point
+Create `Backend/.env` from `Backend/.env.example` and set values:
 
-## Technologies
+- `PORT` (default `5000`)
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `SESSION_SECRET`
+- `CLIENT_URL` (CORS origin, default `http://localhost:5173`)
+- `FRONTEND_URL`
+- `MAIL_HOST`
+- `MAIL_PORT`
+- `MAIL_USER`
+- `MAIL_PASS`
+- `MAIL_FROM`
 
-- Node.js, Express.js, Prisma ORM, PostgreSQL
-- JWT, Nodemailer, Nodemon
+## Setup
 
-## Setup Instructions
+1. `cd Backend`
+2. `npm install`
+3. `npx prisma generate`
+4. `npx prisma migrate dev`
+5. `npm run dev`
 
-1.  Clone the repository:
-    ```bash
-    git clone <repository_url>
-    cd Backend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  **Set up environment variables:**
-    - Create a `.env` file in the root of the `Backend` directory.
-    - Copy the contents of `.env.example` to `.env` and replace the placeholders with your actual values.
-    - Example `.env` file:
-      ```
-      DATABASE_URL="postgresql://user:password@host:port/database"
-      JWT_SECRET="your_jwt_secret_key"
-      EMAIL_HOST="smtp.example.com"
-      EMAIL_PORT=587
-      EMAIL_USER="your_email@example.com"
-      EMAIL_PASS="your_email_password"
-      API_URL=http://localhost:5000/api
-      ```
-4.  Run database migrations:
-    ```bash
-    npx prisma generate
-    npx prisma migrate dev
-    ```
-5.  Start the server:
-    ```bash
-    npm run dev
-    ```
-    (starts on port 5000 by default)
+## Scripts
 
-## API Endpoints (base: /api)
+- `npm run dev` start with nodemon
+- `npm start` start with node
 
-- Auth: `POST /auth/register`, `POST /auth/login`, `POST /auth/forgot-password`, etc.
-- Jobs: `GET /jobs`, `POST /jobs`, `PUT /jobs/:id`, `DELETE /jobs/:id`, `GET /jobs/:id`
+## API Base
 
-Test with Postman or the frontend.
+`http://localhost:5000/api`
 
-## Troubleshooting
+## Notes
 
-- Ensure PostgreSQL is running and accessible.
-- Check `.env` for correct database and API URLs.
-- For migration issues, run `npx prisma migrate dev` again.
-
-## Contributing
-
-- Fork the repo and create a feature branch.
-- Submit pull requests with clear descriptions.
+CORS origin is taken from `CLIENT_URL` in `Backend/.env`.

@@ -12,7 +12,9 @@ import ResetPassword from '../pages/ResetPassword';
 import VerifyEmail from '../pages/VerifyEmail';
 import Profile from '../pages/Profile';
 import NotFound from '../pages/NotFound';
-import GoogleAuthCallback from '../pages/GoogleAuthCallback';
+import Companies from '../pages/Companies';
+import Interviews from '../pages/Interviews';
+import Import from '../pages/Import';
 
 const AppRoutes = () => {
   const { user, loading: authLoading } = useAuth();
@@ -41,7 +43,6 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/verify-email/:token" element={<VerifyEmail />} />
-      <Route path="/google-callback" element={<GoogleAuthCallback />} />
       <Route
         path="/jobs"
         element={
@@ -97,6 +98,42 @@ const AppRoutes = () => {
             <p>Loading...</p>
           ) : user ? (
             <Profile />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/companies"
+        element={
+          authLoading ? (
+            <p>Loading...</p>
+          ) : user ? (
+            <Companies />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/interviews"
+        element={
+          authLoading ? (
+            <p>Loading...</p>
+          ) : user ? (
+            <Interviews />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/import"
+        element={
+          authLoading ? (
+            <p>Loading...</p>
+          ) : user ? (
+            <Import />
           ) : (
             <Navigate to="/" replace />
           )

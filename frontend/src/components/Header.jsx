@@ -53,6 +53,9 @@ const Header = () => {
             <>
               <Link to="/jobs" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Jobs</Link>
               <Link to="/add-job" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Add Job</Link>
+              <Link to="/companies" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Companies</Link>
+              <Link to="/interviews" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Interviews</Link>
+              <Link to="/import" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Import</Link>
               <Link to="/profile" className="text-slate-600 font-medium hover:text-violet-600 transition-colors">Profile</Link>
               <button onClick={handleLogout} className="btn-primary py-2 px-5 text-sm shadow-md">Logout</button>
             </>
@@ -71,6 +74,9 @@ const Header = () => {
               <>
                 <Link to="/jobs" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Jobs</Link>
                 <Link to="/add-job" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Add Job</Link>
+                <Link to="/companies" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Companies</Link>
+                <Link to="/interviews" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Interviews</Link>
+                <Link to="/import" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Import</Link>
                 <Link to="/profile" className="text-lg text-slate-700 font-semibold hover:text-violet-600" onClick={() => setMenuOpen(false)}>Profile</Link>
                 <button onClick={() => { setMenuOpen(false); handleLogout(); }} className="btn-primary w-3/4 text-center">Logout</button>
               </>
