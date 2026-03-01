@@ -23,7 +23,6 @@ app.use(cookieParser());
 app.use(express.json());
 
 
-// Param middleware to parse :id once
 app.param("id", (req, res, next, id) => {
   const jobId = parseInt(id, 10);
   if (isNaN(jobId)) return res.status(400).json({ error: "Invalid job ID" });

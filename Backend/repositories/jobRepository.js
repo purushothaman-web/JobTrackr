@@ -95,3 +95,26 @@ export const exportJobsCSV = async (userID) => {
     },
   });
 };
+
+export const getJobActivity = async (userId, start, end) => {
+  const jobs = await prisma.job.findMany({
+    where: {
+      userId,
+      createdAt: {
+        gte: start,
+        lte: end,
+      },
+    },
+    select: {
+      createdAt: true,
+    },
+  });
+
+  const activity = {};
+  jobs.forEach((job) => {
+    const date = job.createdAt.toISOString().split("T")[0];
+    activity[date] = (activity[date] || 0) + 1;
+  });
+
+  return activity;
+};

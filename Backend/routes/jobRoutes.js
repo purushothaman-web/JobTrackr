@@ -14,6 +14,7 @@ import {
   getJobTimeline,
   getJobInterviews,
   createJobInterview,
+  getJobActivity,
 } from '../controllers/jobController.js';
 import asyncHandler from '../middleware/asyncHandler.js';
 import { authenticate } from '../middleware/authMiddleware.js';
@@ -25,6 +26,7 @@ const router = express.Router();
 router.get("/", authenticate, asyncHandler(getJobs));
 router.get('/export', authenticate, asyncHandler(exportJobsCSV));
 router.get('/email', authenticate, asyncHandler(getJobSummaryEmail));
+router.get("/activity", authenticate, asyncHandler(getJobActivity));
 router.get("/stats", authenticate, asyncHandler(getJobStats));
 router.post('/import', authenticate, asyncHandler(importJobs));
 router.get('/:id/timeline', authenticate, asyncHandler(getJobTimeline));

@@ -1,19 +1,38 @@
-// src/pages/NotFound.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import Button from '../components/Button';
 
 const NotFound = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-      <h1 className="text-6xl font-bold mb-4 text-red-600">404</h1>
-      <h2 className="text-2xl mb-6">Oops! Page Not Found</h2>
-      <p className="mb-6">The page you are looking for does not exist.</p>
-      <Link
-        to="/"
-        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-lg bg-obsidian-light border border-border p-8 sm:p-12 text-center shadow-2xl relative overflow-hidden"
       >
-        Go to Home
-      </Link>
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-electric" />
+        
+        <h1 className="font-heading text-8xl font-black text-offwhite tracking-tighter uppercase mb-2">
+          404<span className="text-red-500">_</span>
+        </h1>
+        
+        <p className="font-mono text-electric text-sm tracking-widest uppercase mb-6 border-b border-border/50 pb-6 inline-block">
+          Sector Not Found
+        </p>
+        
+        <div className="font-mono text-zinc-400 text-xs sm:text-sm leading-relaxed mb-10">
+          <p>The requested destination matrix does not exist.</p>
+          <p className="mt-2 text-zinc-500">Verify coordinates or return to base.</p>
+        </div>
+        
+        <Link to="/">
+          <Button variant="primary" className="w-full sm:w-auto uppercase tracking-widest font-black">
+            Return to Core
+          </Button>
+        </Link>
+      </motion.div>
     </div>
   );
 };

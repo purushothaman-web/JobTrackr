@@ -39,9 +39,9 @@ export const AuthProvider = ({ children }) => {
 
         const freshUser = {
           ...parsedUser,
-          name: response.data.name,
-          email: response.data.email,
-          emailVerified: response.data.emailVerified, // ✅ Ensure backend returns this
+          name: response.data.data.name,
+          email: response.data.data.email,
+          emailVerified: response.data.data.emailVerified,
         };
 
         setUser(freshUser);
@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         console.error("AuthContext: Failed to fetch profile", err);
         localStorage.removeItem("user");
+        delete api.defaults.headers.common["Authorization"];
         setUser(null);
       } finally {
         setLoading(false);
@@ -56,6 +57,25 @@ export const AuthProvider = ({ children }) => {
     };
 
     fetchUser();
+    
+    // Add interceptor
+    const interceptorId = api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          console.warn("AuthContext Interceptor triggered 401. Request URL:", error.config?.url);
+          console.warn("Attempting to logout because token is invalid or missing.");
+          localStorage.removeItem("user");
+          delete api.defaults.headers.common["Authorization"];
+          setUser(null);
+        }
+        return Promise.reject(error);
+      }
+    );
+    
+    return () => {
+       api.interceptors.response.eject(interceptorId);
+    };
   }, []);
 
   // ✅ Register
@@ -128,6 +148,27 @@ export const AuthProvider = ({ children }) => {
     delete api.defaults.headers.common["Authorization"];
   };
 
+  // Update Profile
+  const updateProfile = async (data) => {
+    try {
+      const response = await api.put("/auth/update-profile", data);
+      if (response.data.success) {
+        // Update local user state
+        setUser((prev) => ({
+          ...prev,
+          name: response.data.data.name,
+          email: response.data.data.email,
+        }));
+        setError(null);
+        return response.data.data;
+      } else {
+        setError(response.data.error || "Profile update failed");
+      }
+    } catch (error) {
+      setError(error.response?.data?.error || error.message || "Profile update failed");
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -155,23 +196,3 @@ export const useAuth = () => {
   }
   return context;
 };
-  // Update Profile
-  const updateProfile = async (data) => {
-    try {
-      const response = await api.put("/auth/update-profile", data);
-      if (response.data.success) {
-        // Update local user state
-        setUser((prev) => ({
-          ...prev,
-          name: response.data.data.name,
-          email: response.data.data.email,
-        }));
-        setError(null);
-        return response.data.data;
-      } else {
-        setError(response.data.error || "Profile update failed");
-      }
-    } catch (error) {
-      setError(error.response?.data?.error || error.message || "Profile update failed");
-    }
-  };

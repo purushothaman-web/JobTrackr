@@ -8,11 +8,11 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="antialiased font-body bg-obsidian text-offwhite min-h-screen flex flex-col selection:bg-electric selection:text-obsidian">
       <Header />
-      <main className="flex-1">
+      <main className="flex-grow page-shell pt-32 pb-16">
         <AppRoutes />
-        <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} pauseOnHover theme="light" />
+        <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} pauseOnHover theme="dark" />
       </main>
 
     </div>

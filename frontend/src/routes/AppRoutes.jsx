@@ -4,7 +4,6 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Jobs from '../pages/Jobs';
 import AddJob from '../pages/AddJob';
-import EditJob from '../pages/EditJob';
 import JobDetails from '../pages/JobDetails';
 import { useAuth } from '../context/AuthContext';
 import ForgotPassword from '../pages/ForgotPassword';
@@ -62,18 +61,6 @@ const AppRoutes = () => {
             <p>Loading...</p>
           ) : user ? (
             <AddJob />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/edit-job/:id"
-        element={
-          authLoading ? (
-            <p>Loading...</p>
-          ) : user ? (
-            <EditJob />
           ) : (
             <Navigate to="/" replace />
           )

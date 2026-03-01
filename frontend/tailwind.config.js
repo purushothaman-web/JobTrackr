@@ -7,9 +7,22 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'heading': ['Poppins', 'sans-serif'],
-        'body': ['Roboto', 'sans-serif'],
+        'heading': ['"Space Grotesk"', 'sans-serif'],
+        'body': ['Inter', 'sans-serif'],
+        'mono': ['"JetBrains Mono"', 'monospace'],
       },
+      colors: {
+        obsidian: {
+          DEFAULT: '#09090b',
+          light: '#18181b',
+        },
+        border: '#27272a',
+        offwhite: '#fafafa',
+        electric: {
+          DEFAULT: '#c0ff00',
+          hover: '#a3d900',
+        }
+      }
     },
   },
   plugins: [],

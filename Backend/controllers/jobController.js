@@ -651,3 +651,23 @@ export const createJobInterview = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+export const getJobActivity = async (req, res, next) => {
+  const userId = req.user.id;
+  try {
+    const startStr = req.query.start;
+    const endStr = req.query.end;
+
+    // Default to last 365 days if no range provided
+    const end = endStr ? new Date(endStr) : new Date();
+    const start = startStr
+      ? new Date(startStr)
+      : new Date(new Date().setDate(end.getDate() - 365));
+
+    const activity = await jobRepository.getJobActivity(userId, start, end);
+    res.status(200).json({ success: true, data: activity });
+  } catch (error) {
+    console.error("get job activity error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};

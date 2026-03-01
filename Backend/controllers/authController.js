@@ -49,35 +49,24 @@ export const register = async (req, res, next) => {
 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}`;
     const message = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
-      <h2 style="color: #333;">📩 Verify Your Email Address</h2>
-      <p>Hello,</p>
-      <p>Thank you for registering! Please verify your email by clicking the button below:</p>
-      <p style="text-align: center;">
-        <a href="${verificationUrl}" 
-           style="
-             display: inline-block; 
-             padding: 12px 24px; 
-             font-size: 16px; 
-             color: #fff; 
-             background-color: #10B981; 
-             text-decoration: none; 
-             border-radius: 5px;
-             font-weight: bold;
-           ">
-          Verify Email
-        </a>
-      </p>
-      <p>If you did not request this, please ignore this email.</p>
-      <hr style="margin-top: 30px; border-color: #ddd;" />
-      <p style="font-size: 12px; color: #666;">
-        If the button above doesn’t work, copy and paste the following link into your browser:
-      </p>
-      <p style="font-size: 12px; color: #007acc;">
-        <a href="${verificationUrl}" style="color: #007acc;">${verificationUrl}</a>
-      </p>
-    </div>
-  `;
+      <div style="font-family: 'Courier New', monospace; max-width: 600px; margin: auto; padding: 30px; border: 2px solid #27272a; background-color: #0a0a0a; color: #fafafa;">
+        <h2 style="font-weight: 900; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 20px; font-size: 24px; color: #fafafa;">SYS_INIT<span style="color: #a3e635;">.</span></h2>
+        <p style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; border-bottom: 1px solid #27272a; padding-bottom: 10px; margin-bottom: 20px;">
+          Identity Sync Sequence
+        </p>
+        <p style="font-size: 14px; margin-bottom: 20px; line-height: 1.5;">Subject identity unverified. Click the execution link below to synchronize your comms channel with the mainframe.</p>
+        <div style="margin: 30px 0;">
+          <a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; font-size: 14px; color: #0a0a0a; background-color: #a3e635; text-decoration: none; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border: 1px solid #a3e635;">
+            [ SYNCHRONIZE ]
+          </a>
+        </div>
+        <p style="font-size: 12px; color: #71717a; line-height: 1.5;">If this request is unrecognized, abort action and purge this transmission.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #27272a; font-size: 10px; color: #52525b; word-break: break-all;">
+          MANUAL OVERRIDE LINK:<br/>
+          <a href="${verificationUrl}" style="color: #a3e635; text-decoration: none;">${verificationUrl}</a>
+        </div>
+      </div>
+    `;
 
 
     await sendEmail(user.email, "Email Verification", message)
@@ -194,20 +183,23 @@ export const forgotPassword = async (req, res, next) => {
     });
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${rawToken}`;
     const message = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-        <h2 style="color: #333;">🔐 Password Reset Request</h2>
-        <p>Hello,</p>
-        <p>You requested a password reset. Click the button below to reset your password:</p>
-        <p style="text-align: center;">
-          <a href="${resetUrl}" style="background-color: #1D4ED8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
-            Reset Password
-          </a>
+      <div style="font-family: 'Courier New', monospace; max-width: 600px; margin: auto; padding: 30px; border: 2px solid #27272a; background-color: #0a0a0a; color: #fafafa;">
+        <h2 style="font-weight: 900; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 20px; font-size: 24px; color: #fafafa;">SYS_OVERRIDE<span style="color: #a3e635;">.</span></h2>
+        <p style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; border-bottom: 1px solid #27272a; padding-bottom: 10px; margin-bottom: 20px;">
+          Reset Synchronization Protocol
         </p>
-        <p>This link will expire in <strong>1 hour</strong>.</p>
-        <p>If you didn’t request this, you can safely ignore this email.</p>
-        <hr style="margin-top: 30px;" />
-        <p style="font-size: 12px; color: #888;">If the button above doesn't work, paste this link into your browser:</p>
-        <p style="font-size: 12px;"><a href="${resetUrl}">${resetUrl}</a></p>
+        <p style="font-size: 14px; margin-bottom: 20px; line-height: 1.5;">A password reset sequence has been initiated for your coordinates. Execute the link below to confirm.</p>
+        <div style="margin: 30px 0;">
+          <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; font-size: 14px; color: #0a0a0a; background-color: #a3e635; text-decoration: none; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border: 1px solid #a3e635;">
+            [ RESET_CIPHER ]
+          </a>
+        </div>
+        <p style="font-size: 12px; color: #a3e635; font-weight: bold; margin-bottom: 20px;">Link expires in 1 hour.</p>
+        <p style="font-size: 12px; color: #71717a; line-height: 1.5;">If this request is unrecognized, your matrix is unharmed. Purge this transmission.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #27272a; font-size: 10px; color: #52525b; word-break: break-all;">
+          MANUAL OVERRIDE LINK:<br/>
+          <a href="${resetUrl}" style="color: #a3e635; text-decoration: none;">${resetUrl}</a>
+        </div>
       </div>
     `;
     await sendEmail(user.email, 'Password Reset Request', message);
@@ -311,20 +303,22 @@ export const resendVerificationEmail = async (req, res) => {
     }
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
     const message = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-        <h2 style="color: #333;">📩 Verify Your Email Address</h2>
-        <p>Hello,</p>
-        <p>Thanks for registering. Please verify your email address by clicking the button below:</p>
-        <p style="text-align: center;">
-          <a href="${verificationUrl}" style="background-color: #10B981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
-            Verify Email
-          </a>
+      <div style="font-family: 'Courier New', monospace; max-width: 600px; margin: auto; padding: 30px; border: 2px solid #27272a; background-color: #0a0a0a; color: #fafafa;">
+        <h2 style="font-weight: 900; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 20px; font-size: 24px; color: #fafafa;">SYS_INIT<span style="color: #a3e635;">.</span></h2>
+        <p style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; border-bottom: 1px solid #27272a; padding-bottom: 10px; margin-bottom: 20px;">
+          Identity Sync Sequence
         </p>
-        <p>This helps us confirm your identity and keep your account secure.</p>
-        <p>If you didn’t create an account, you can safely ignore this email.</p>
-        <hr style="margin-top: 30px;" />
-        <p style="font-size: 12px; color: #888;">If the button above doesn't work, paste this link into your browser:</p>
-        <p style="font-size: 12px;"><a href="${verificationUrl}">${verificationUrl}</a></p>
+        <p style="font-size: 14px; margin-bottom: 20px; line-height: 1.5;">Subject identity unverified. Click the execution link below to synchronize your comms channel with the mainframe.</p>
+        <div style="margin: 30px 0;">
+          <a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; font-size: 14px; color: #0a0a0a; background-color: #a3e635; text-decoration: none; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border: 1px solid #a3e635;">
+            [ SYNCHRONIZE ]
+          </a>
+        </div>
+        <p style="font-size: 12px; color: #71717a; line-height: 1.5;">If this request is unrecognized, abort action and purge this transmission.</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #27272a; font-size: 10px; color: #52525b; word-break: break-all;">
+          MANUAL OVERRIDE LINK:<br/>
+          <a href="${verificationUrl}" style="color: #a3e635; text-decoration: none;">${verificationUrl}</a>
+        </div>
       </div>
     `;
     await sendEmail(user.email, "Email Verification", message);

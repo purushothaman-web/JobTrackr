@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchAllInterviews, updateInterview, deleteInterview } from '../services/JobService';
+import { deleteInterview, fetchAllInterviews, updateInterview } from '../services/JobService';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Interviews = () => {
   const { user, loading: authLoading } = useAuth();
   const [interviews, setInterviews] = useState([]);
-  const [status, setStatus] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
-  const loadInterviews = async (filters = {}) => {
+  const loadInterviews = useCallback(async () => {
     if (!user?.token) return;
     try {
       setLoading(true);
+      const filters = statusFilter ? { status: statusFilter } : {};
       const data = await fetchAllInterviews({ token: user.token, ...filters });
       setInterviews(data);
       setError('');
@@ -23,112 +23,222 @@ const Interviews = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, statusFilter]);
 
   useEffect(() => {
-    if (!authLoading && user?.token) loadInterviews();
-  }, [authLoading, user]);
+    if (user?.token) {
+      loadInterviews();
+    } else if (!authLoading) {
+      setLoading(false);
+    }
+  }, [user, authLoading, loadInterviews]);
 
-  const handleFilter = async (e) => {
-    e.preventDefault();
-    await loadInterviews({ status, from, to });
-  };
+  const grouped = useMemo(() => {
+    const now = Date.now();
+    return {
+      upcoming: interviews.filter((i) => {
+        const isFuture = new Date(i.scheduledAt).getTime() >= now;
+        const isPending = i.status !== 'completed' && i.status !== 'cancelled';
+        return isFuture && isPending;
+      }),
+      past: interviews.filter((i) => {
+        const isPast = new Date(i.scheduledAt).getTime() < now;
+        const isDone = i.status === 'completed' || i.status === 'cancelled';
+        return isPast || isDone;
+      }),
+    };
+  }, [interviews]);
 
-  const handleStatusChange = async (interview, newStatus) => {
+  const quickStatusUpdate = async (id, status) => {
     if (!user?.token) return;
     try {
-      await updateInterview({
-        interviewId: interview.id,
-        payload: { status: newStatus },
-        token: user.token,
-      });
-      await loadInterviews({ status, from, to });
+      await updateInterview({ interviewId: id, payload: { status }, token: user.token });
+      await loadInterviews();
     } catch (err) {
       setError(err.message || 'Failed to update interview');
     }
   };
 
-  const handleDelete = async (interview) => {
+  const removeInterview = async (id) => {
     if (!user?.token) return;
-    if (!window.confirm('Delete this interview?')) return;
+    if (!window.confirm('Initiate interview record deletion?')) return;
     try {
-      await deleteInterview({ interviewId: interview.id, token: user.token });
-      await loadInterviews({ status, from, to });
+      await deleteInterview({ interviewId: id, token: user.token });
+      await loadInterviews();
     } catch (err) {
       setError(err.message || 'Failed to delete interview');
     }
   };
 
-  if (authLoading) return <p className="p-6">Loading...</p>;
+  const renderInterview = (interview, index) => (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      key={interview.id} 
+      className="group relative border border-border bg-obsidian p-5 hover:border-electric transition-colors overflow-hidden"
+    >
+      <div className="absolute top-0 right-0 p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <button 
+          className="text-zinc-500 hover:text-red-500 transition-colors bg-obsidian border border-border" 
+          onClick={() => removeInterview(interview.id)}
+          title="Delete"
+        >
+          <svg className="w-5 h-5 p-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+        </button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div>
+          <h3 className="font-heading font-bold text-xl text-offwhite uppercase tracking-tight mb-1 pr-12">
+            {interview.job?.position || '-'}
+          </h3>
+          <p className="font-mono text-xs uppercase tracking-widest text-electric mb-4">
+            {interview.job?.company || '-'}
+          </p>
+          
+          <div className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-wider text-zinc-400">
+            <div className="flex border-b border-border/50 pb-1">
+              <span className="w-24">Date/Time</span>
+              <span className="text-zinc-300">{new Date(interview.scheduledAt).toLocaleString()}</span>
+            </div>
+            <div className="flex border-b border-border/50 pb-1">
+              <span className="w-24">Type</span>
+              <span className="text-zinc-300">{interview.mode || 'N/A'} · {interview.round || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col justify-end mt-4 sm:mt-0 sm:items-end w-full sm:w-auto">
+          <label className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-1 sm:text-right block">Update Status</label>
+          <div className="relative w-full sm:w-40">
+             <select
+                className="w-full appearance-none bg-obsidian-light border border-border text-xs font-mono text-offwhite py-2 pl-3 pr-8 focus:outline-none focus:border-electric transition-colors uppercase cursor-pointer"
+                value={interview.status || 'scheduled'}
+                onChange={(e) => quickStatusUpdate(interview.id, e.target.value)}
+              >
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-electric">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+          </div>
+        </div>
+      </div>
+      
+      {interview.notes && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Briefing Notes</p>
+          <p className="text-sm font-mono text-zinc-300">{interview.notes}</p>
+        </div>
+      )}
+    </motion.div>
+  );
+
+  if (authLoading) return (
+    <div className="flex h-[60vh] items-center justify-center">
+      <div className="font-mono text-electric animate-pulse tracking-widest uppercase">Checking Auth_</div>
+    </div>
+  );
+  
+  if (!user) return (
+    <div className="flex h-[60vh] items-center justify-center">
+      <div className="font-mono text-zinc-500 uppercase tracking-widest">Unauthorized Access</div>
+    </div>
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Interviews</h1>
+    <div className="mx-auto w-full max-w-7xl py-8 space-y-6 px-4 sm:px-6">
+      <section className="bg-obsidian-light border border-border p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="font-heading text-4xl font-black text-offwhite tracking-tighter uppercase">
+            Appointments<span className="text-electric">.</span>
+          </h1>
+          <p className="font-mono text-zinc-500 text-xs tracking-widest uppercase mt-2">
+            Interview Schedule Matrix
+          </p>
+        </div>
+        
+        <div className="w-full sm:w-64">
+           <label className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-1 block">Global Filter</label>
+           <div className="relative">
+              <select
+                className="w-full appearance-none bg-obsidian border border-border text-sm font-mono text-offwhite py-2.5 pl-4 pr-10 focus:outline-none focus:border-electric transition-colors uppercase cursor-pointer"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">All Appts</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-electric bg-obsidian-light border-l border-border">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+           </div>
+        </div>
+      </section>
 
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+      {error && (
+        <div className="p-3 border border-red-500/50 bg-red-500/10 text-red-500 font-mono text-xs uppercase tracking-widest">
+          {error}
+        </div>
+      )}
 
-      <form onSubmit={handleFilter} className="bg-white rounded shadow p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-3">
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="border rounded px-3 py-2">
-          <option value="">All statuses</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-        <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border rounded px-3 py-2" />
-        <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border rounded px-3 py-2" />
-        <button type="submit" className="bg-blue-600 text-white rounded px-4 py-2">
-          Apply Filters
-        </button>
-      </form>
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <section className="flex flex-col gap-4">
+          <div className="border-b border-border pb-2">
+             <h2 className="font-heading text-2xl font-black text-electric uppercase tracking-tight">Active_Queue</h2>
+          </div>
+          
+          {loading ? (
+             <div className="p-12 border border-border border-dashed flex items-center justify-center">
+               <div className="font-mono text-zinc-500 animate-pulse tracking-widest uppercase text-sm">Syncing_</div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <AnimatePresence>
+                {grouped.upcoming.length ? (
+                  grouped.upcoming.map((i, idx) => renderInterview(i, idx))
+                ) : (
+                  <div className="p-8 border border-border border-dashed flex justify-center text-center">
+                    <p className="font-mono text-zinc-500 text-xs uppercase tracking-widest">No active items.</p>
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </section>
 
-      <div className="bg-white rounded shadow overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-3">Date</th>
-              <th className="text-left p-3">Job</th>
-              <th className="text-left p-3">Company</th>
-              <th className="text-left p-3">Round</th>
-              <th className="text-left p-3">Mode</th>
-              <th className="text-left p-3">Status</th>
-              <th className="text-left p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {interviews.map((interview) => (
-              <tr key={interview.id} className="border-t">
-                <td className="p-3">{new Date(interview.scheduledAt).toLocaleString()}</td>
-                <td className="p-3">{interview.job?.position || '-'}</td>
-                <td className="p-3">{interview.job?.company || '-'}</td>
-                <td className="p-3">{interview.round || '-'}</td>
-                <td className="p-3">{interview.mode || '-'}</td>
-                <td className="p-3">
-                  <select
-                    value={interview.status || 'scheduled'}
-                    onChange={(e) => handleStatusChange(interview, e.target.value)}
-                    className="border rounded px-2 py-1"
-                  >
-                    <option value="scheduled">scheduled</option>
-                    <option value="completed">completed</option>
-                    <option value="cancelled">cancelled</option>
-                  </select>
-                </td>
-                <td className="p-3">
-                  <button onClick={() => handleDelete(interview)} className="text-red-600">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {!interviews.length && !loading && (
-              <tr>
-                <td colSpan={7} className="p-3 text-gray-500">
-                  No interviews found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <section className="flex flex-col gap-4">
+          <div className="border-b border-border pb-2">
+             <h2 className="font-heading text-2xl font-black text-zinc-500 uppercase tracking-tight">Archive_Log</h2>
+          </div>
+          
+          {loading ? (
+             <div className="p-12 border border-border border-dashed flex items-center justify-center">
+               <div className="font-mono text-zinc-500 animate-pulse tracking-widest uppercase text-sm">Syncing_</div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+               <AnimatePresence>
+                {grouped.past.length ? (
+                  grouped.past.map((i, idx) => renderInterview(i, idx))
+                ) : (
+                  <div className="p-8 border border-border border-dashed flex justify-center text-center">
+                    <p className="font-mono text-zinc-500 text-xs uppercase tracking-widest">Log is empty.</p>
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
