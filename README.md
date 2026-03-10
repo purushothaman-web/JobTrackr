@@ -6,8 +6,6 @@ JobTrackr includes two implementations:
 - `Backend/` (Express + Prisma + PostgreSQL API)
 - `frontend/` (Vite + React UI)
 
-2. Next.js full stack
-- `jobtrackr-njs/` (Next.js 16 App Router + Prisma)
 
 ## Quickstart (PERN)
 
